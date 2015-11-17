@@ -8,34 +8,14 @@ import timeit
 import sys
 import os
 
-from logistic_sgd import LogisticRegression
+from logistic_sgd import LogisticRegression, load_data
 from mlp import HiddenLayer
 
 class LeNetConvPoolLayer(object):
     """Pool Layer of a convolutional network """
 
     def __init__(self, rng, input, filter_shape, image_shape, poolsize=(2, 2)):
-        """
-        Allocate a LeNetConvPoolLayer with shared variable internal parameters.
-
-        :type rng: numpy.random.RandomState
-        :param rng: a random number generator used to initialize weights
-
-        :type input: theano.tensor.dtensor4
-        :param input: symbolic image tensor, of shape image_shape
-
-        :type filter_shape: tuple or list of length 4
-        :param filter_shape: (number of filters, num input feature maps,
-                              filter height, filter width)
-
-        :type image_shape: tuple or list of length 4
-        :param image_shape: (batch size, num input feature maps,
-                             image height, image width)
-
-        :type poolsize: tuple or list of length 2
-        :param poolsize: the downsampling (pooling) factor (#rows, #cols)
-        """
-
+        
         assert image_shape[1] == filter_shape[1]
         self.input = input
 
@@ -89,9 +69,10 @@ class LeNetConvPoolLayer(object):
         self.input = input
 
 
-def trainConvNet(data_xy, n_epochs = 1, nkerns=[10, 20], batch_size=100, learning_rate=0.01):
+def trainConvNet(data_xy, n_epochs = 3, nkerns=[5, 10], batch_size=500, learning_rate=0.1):
 	train_x, train_y, test_x, test_y, valid_x, valid_y = data_xy
 	print train_x.shape.eval(), train_y.shape.eval()
+
 	n_train_batches = train_x.get_value(borrow=True).shape[0] / batch_size
 	n_valid_batches = valid_x.get_value(borrow=True).shape[0] / batch_size
 	n_test_batches = test_x.get_value(borrow=True).shape[0] / batch_size
@@ -99,27 +80,26 @@ def trainConvNet(data_xy, n_epochs = 1, nkerns=[10, 20], batch_size=100, learnin
 
 	index = T.lscalar()
 
-	x = T.matrix('x')
+	x = T.tensor4('x')
 	y = T.ivector('y')
-	#y = T.matrix('y')
 	rng = numpy.random.RandomState(23455)
 
-	layer0_input = x.reshape((batch_size, 3, 13, 13))
+	layer0_input = x.reshape((batch_size, 3, 10, 10))
 
 	layer0 = LeNetConvPoolLayer(
 		rng, 
 		input = layer0_input,
-		image_shape=(batch_size, 3, 13, 13),
-		filter_shape=(nkerns[0], 3, 4, 4),
+		image_shape=(batch_size, 3, 10, 10),
+		filter_shape=(nkerns[0], 3, 3, 3),
 		poolsize=(2, 2)
 	)
 
 	layer1 = LeNetConvPoolLayer(
 		rng,
 		input = layer0.output,
-		image_shape=(batch_size, nkerns[0], 5, 5),
+		image_shape=(batch_size, nkerns[0], 4, 4),
 		filter_shape=(nkerns[1], nkerns[0], 2, 2),
-		poolsize=(2, 2)
+		poolsize=(1, 1)
 	)
 
 	layer2_input = layer1.output.flatten(2)
@@ -127,12 +107,12 @@ def trainConvNet(data_xy, n_epochs = 1, nkerns=[10, 20], batch_size=100, learnin
 	layer2 = HiddenLayer(
 		rng,
 		input=layer2_input,
-		n_in=nkerns[1]*2*2,
-		n_out=500,
+		n_in=nkerns[1]*3*3,
+		n_out=300,
 		activation=T.tanh
 	)
 
-	layer3 = LogisticRegression(input=layer2.output, n_in=500, n_out=10)
+	layer3 = LogisticRegression(input=layer2.output, n_in=300, n_out=10)
 
 	cost = layer3.negative_log_likelihood(y)
 

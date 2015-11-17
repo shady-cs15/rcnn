@@ -1,8 +1,8 @@
 import os
-from scipy import misc
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
+from PIL import Image
 
 import theano
 import theano.tensor as T
@@ -18,7 +18,7 @@ print 'note that arg should be 0..9'
 
 labeled_files = [f for f in os.listdir('../data/labeled_scaled')]
 #labeled_files = labeled_files[bin_size*bin_index:bin_size*(bin_index+1)] 
-labeled_files = labeled_files[1:4]
+labeled_files = labeled_files[1:2]
 print "labeled files loaded: ", len(labeled_files)
 
 #print labeled_files
@@ -43,7 +43,8 @@ def load_dataset(data_files, create_dump=False):
 	
 	print 'reading labeled files...'
 	for f in labeled_files:
-		label = misc.imread('../data/labeled_scaled/'+f)
+		label = Image.open(open('../data/labeled_scaled/'+f))
+		label = np.asarray(label, dtype='int8')
 		y = vectorize_labels(label)
 		y_list+=y
 	if create_dump==True:
@@ -53,9 +54,13 @@ def load_dataset(data_files, create_dump=False):
 
 	print 'reading data files...\n'	
 	for f in data_files:
-		img = misc.imread('../data/left_scaled/'+f)
-		label_img = misc.imread('../data/labeled_scaled/'+f[:-3]+'png')
-		patches = compute_patches(img, label_img, 6)
+		img_ = Image.open(open('../data/left_scaled/'+f))
+		img = np.asarray(img_, dtype='float64')/256.
+		img = img.transpose(2, 0, 1)
+		#print img.shape
+		label_img = Image.open(open('../data/labeled_scaled/'+f[:-3]+'png'))
+		label_img = np.asarray(label, dtype='int8')
+		patches = compute_patches(img, label_img, img_) #, 7)
 		x_list+=patches
 		print '\033[Fdata loaded: ', len(x_list)*100.0/len(y_list), ' %'
 		#print len(patches)
@@ -69,21 +74,22 @@ def load_dataset(data_files, create_dump=False):
 	return x_list, y_list
 
 def vectorize_labels(img):
-	rows, cols, channels = img.shape
+	rows, cols = img.shape
 	lst = []
 	for i in range(rows):
 		for j in range(cols):
-			if img[i][j][0]==0:
+			if img[i][j]==0:
 				continue
-			lst.append(img[i][j][0]-1)
+			lst.append(img[i][j]-1)
 	return lst 
 
-def compute_patches(img, label_img, p_width = 4):   #patches are of size 2*p_width+1 ^ 2
+def compute_patches(img, label_img, img_,  p_width = 4):   #patches are of size 2*p_width+1 ^ 2
 	rows, cols, channels = img.shape
 	patch_list = []
+	loaded = 0
 	for i in range(rows):
 		for j in range(cols):
-			if label_img[i][j][0]==0:
+			if label_img[i][j]==0:
 				continue
 			temp_list = []
 			for m in range(3):
@@ -91,11 +97,19 @@ def compute_patches(img, label_img, p_width = 4):   #patches are of size 2*p_wid
 				for k in range(i-p_width, i+p_width+1):
 					for l in range(j-p_width, j+p_width+1):
 						if k < 0 or k >= rows or l < 0 or l >= cols:
-							pixel+=[0]
+							pixel+=[0.]
 						else:
-							pixel+=[img[k][l][m]]
+							pixel+=[img[k][l][m]]/256.
 				temp_list+=(pixel)
 			patch_list.append(temp_list)
+			if loaded == 0:
+				x = img_.crop((min(0, i-p_width), min(0, j-p_width), i+p_width, j+p_width))
+				plt.imshow(x)
+				#print 'showing cropped..', shape(x)
+
+				plt.show()
+
+				loaded+=1
 	return patch_list
 
 def map_to_onehot(num):
@@ -119,4 +133,6 @@ train_x, train_y = shared_dataset((x[0:(3*len(x)/5)], y[0:(3*len(x)/5)]))
 valid_x, valid_y = shared_dataset((x[(3*len(x)/5):(4*len(x)/5)], y[3*len(x)/5:4*len(x)]))
 test_x, test_y = shared_dataset((x[(4*len(x)/5):len(x)], y[(4*len(x)/5):len(x)]))
 print 'sample data shape...', train_x.shape.eval(), train_y.shape.eval()
+
+print type(train_x)
 trainConvNet((train_x, train_y, test_x, test_y, valid_x, valid_y))
