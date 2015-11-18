@@ -10,7 +10,7 @@ import os
 
 from cnn import trainConvNet
 
-def generate_data(file_prefixes):
+def generate_data(file_prefixes, p_width = 10):
 	def generate_patch(img, (i, j), p_width = 10): # patch area : (10*10)
 		assert p_width%2 == 0
 		p_width/=2
@@ -34,7 +34,7 @@ def generate_data(file_prefixes):
 				l = label[j][i]
 				if l==0:
 					continue
-				patch_10 = generate_patch(img, (i, j))
+				patch_10 = generate_patch(img, (i, j), p_width)
 				patch_10_ = np.array(patch_10, dtype='float64').transpose(2, 0, 1)/256.
 				patch_tuple += (patch_10_, )
 				y_list.append(l-1)
@@ -46,7 +46,7 @@ def generate_data(file_prefixes):
 	assert len(patch_tuple) == len(y_list) and len(y_list) == data_size
 	print 'data size: ', data_size
 
-	x = np.concatenate(patch_tuple).reshape((data_size, 3, 10, 10))
+	x = np.concatenate(patch_tuple).reshape((data_size, 3, p_width, p_width))
 	y = y_list
 
 	return x, y
@@ -61,6 +61,8 @@ def shared_dataset(data_xy):
 '''
 	program starts here
 '''
+
+p_width = 10
 file_prefixes = []
 for f in os.listdir('../data/labeled_scaled'):
 	if f=='.DS_Store':
@@ -69,10 +71,11 @@ for f in os.listdir('../data/labeled_scaled'):
 
 #shuffle(file_prefixes)
 
-x, y = generate_data(file_prefixes[:4])
+# repeat for p_width = 20, 30, 40 ...
+x, y = generate_data(file_prefixes[:1], p_width)
 train_x, train_y = shared_dataset((x[0:(3*len(x)/5)], y[0:(3*len(y)/5)]))
 valid_x, valid_y = shared_dataset((x[(3*len(x)/5):(4*len(x)/5)], y[3*len(y)/5:4*len(y)]))
 test_x, test_y = shared_dataset((x[(4*len(x)/5):len(x)], y[(4*len(y)/5):len(y)]))
 
 print type(test_x), type(test_y)
-trainConvNet((train_x, train_y, test_x, test_y, valid_x, valid_y))
+trainConvNet((train_x, train_y, test_x, test_y, valid_x, valid_y), p_width, 5, [5, 10])

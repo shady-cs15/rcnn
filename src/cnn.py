@@ -7,6 +7,7 @@ import numpy
 import timeit
 import sys
 import os
+import cPickle
 
 from logistic_sgd import LogisticRegression, load_data
 from mlp import HiddenLayer
@@ -69,7 +70,7 @@ class LeNetConvPoolLayer(object):
         self.input = input
 
 
-def trainConvNet(data_xy, n_epochs = 3, nkerns=[5, 10], batch_size=500, learning_rate=0.1):
+def trainConvNet(data_xy, inp_dim =10, n_epochs = 3, nkerns=[5, 10], batch_size=500, learning_rate=0.1):
 	train_x, train_y, test_x, test_y, valid_x, valid_y = data_xy
 	print train_x.shape.eval(), train_y.shape.eval()
 
@@ -78,36 +79,49 @@ def trainConvNet(data_xy, n_epochs = 3, nkerns=[5, 10], batch_size=500, learning
 	n_test_batches = test_x.get_value(borrow=True).shape[0] / batch_size
 	print '...building the model'
 
+	kern0_dim = 3
+	kern1_dim = 2
+	pool0_dim = 2
+	pool1_dim = 1
+
+	if inp_dim==10:
+		kern0_dim = 3
+		kern1_dim = 2
+		pool0_dim = 2
+		pool1_dim = 1
+
 	index = T.lscalar()
 
 	x = T.tensor4('x')
 	y = T.ivector('y')
 	rng = numpy.random.RandomState(23455)
 
-	layer0_input = x.reshape((batch_size, 3, 10, 10))
+	layer0_input = x.reshape((batch_size, 3, inp_dim, inp_dim))
 
 	layer0 = LeNetConvPoolLayer(
 		rng, 
 		input = layer0_input,
-		image_shape=(batch_size, 3, 10, 10),
-		filter_shape=(nkerns[0], 3, 3, 3),
-		poolsize=(2, 2)
+		image_shape=(batch_size, 3, inp_dim, inp_dim),
+		filter_shape=(nkerns[0], 3, kern0_dim, kern0_dim),
+		poolsize=(pool0_dim, pool0_dim)
 	)
 
+	inp1_dim = (inp_dim-kern0_dim+1)/pool0_dim
 	layer1 = LeNetConvPoolLayer(
 		rng,
 		input = layer0.output,
-		image_shape=(batch_size, nkerns[0], 4, 4),
-		filter_shape=(nkerns[1], nkerns[0], 2, 2),
-		poolsize=(1, 1)
+		image_shape=(batch_size, nkerns[0], inp1_dim, inp1_dim),
+		filter_shape=(nkerns[1], nkerns[0], kern1_dim, kern1_dim),
+		poolsize=(pool1_dim, pool1_dim)
 	)
 
 	layer2_input = layer1.output.flatten(2)
 
+	inp2_dim = (inp1_dim-kern1_dim+1)/pool1_dim
 	layer2 = HiddenLayer(
 		rng,
 		input=layer2_input,
-		n_in=nkerns[1]*3*3,
+		n_in=nkerns[1]*inp2_dim*inp2_dim,
 		n_out=300,
 		activation=T.tanh
 	)
@@ -199,3 +213,14 @@ def trainConvNet(data_xy, n_epochs = 3, nkerns=[5, 10], batch_size=500, learning
 	print >> sys.stderr, ('The code for file ' +
                           os.path.split(__file__)[1] +
                           ' ran for %.2fm' % ((end_time - start_time) / 60.))
+
+	print ('saving params for patch width: %i...' %(inp_dim))
+	save_file = open('param'+str(inp_dim)+'.pkl', 'wb')
+	#print layer0.params[0].eval()
+	W0 = layer0.params[0]; b0 = layer0.params[1]
+	W1 = layer1.params[0]; b1 = layer1.params[1]
+	cPickle.dump(W0.get_value(borrow=True), save_file, -1)
+	cPickle.dump(b0.get_value(borrow=True), save_file, -1)
+	cPickle.dump(W1.get_value(borrow=True), save_file, -1)
+	cPickle.dump(b1.get_value(borrow=True), save_file, -1)
+	save_file.close()

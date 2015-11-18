@@ -47,7 +47,6 @@ print 'equal: ', np.array_equal(x, x[0:2])
 #w_shp = ()
 #added
 
-
 layer0 = LeNetConvPoolLayer(
 	rng, 
 	input = layer0_input,
@@ -69,11 +68,11 @@ print layer0.input[0, 0, :,:]*256.
 print layer0.output[0, 0, :, :].eval()*256.
 print layer0.output[0, 1, :, :].eval()*256.'''
 for i in range(5):
-	plt.subplot(1, 6, i+1); plt.axis('off'); plt.imshow(Image.fromarray(layer0.output.eval()[0, i, :, :]*256.))
-plt.subplot(1, 6, 6); plt.axis('off'); plt.imshow(Image.fromarray(layer0.input[0, 0, :, :]*256.))
+	plt.subplot(1, 5, i+1); plt.axis('off'); plt.imshow(Image.fromarray(layer0.output.eval()[0, i, :, :]*256.))
+#plt.subplot(1, 6, 6); plt.axis('off'); plt.imshow(Image.fromarray(layer0.input[0, 0, :, :]*256.))
 plt.show()
 
 for i in range(8):
-	plt.subplot(1, 9, i+1); plt.axis('off'); plt.imshow(Image.fromarray(layer1.output.eval()[0, i, :, :]*256.))
-plt.subplot(1, 9, 9); plt.axis('off'); plt.imshow(Image.fromarray(layer0.input[0, 0, :, :]*256.))
+	plt.subplot(1, 8, i+1); plt.axis('off'); plt.imshow(Image.fromarray(layer1.output.eval()[0, i, :, :]*256.))
+#plt.subplot(1, 8, 9); plt.axis('off'); plt.imshow(Image.fromarray(layer0.input[0, 0, :, :]*256.))
 plt.show()
