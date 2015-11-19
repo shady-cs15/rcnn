@@ -84,9 +84,27 @@ def trainConvNet(data_xy, inp_dim =10, n_epochs = 3, nkerns=[5, 10], batch_size=
 	pool0_dim = 2
 	pool1_dim = 1
 
+	if inp_dim==4:
+		kern0_dim = 2
+		kern1_dim = 1
+		pool0_dim = 1
+		pool1_dim = 1
+
 	if inp_dim==10:
 		kern0_dim = 3
 		kern1_dim = 2
+		pool0_dim = 2
+		pool1_dim = 1
+
+	if inp_dim==14:
+		kern0_dim = 5
+		kern1_dim = 3
+		pool0_dim = 2
+		pool1_dim = 1
+
+	if inp_dim==20:
+		kern0_dim = 7
+		kern1_dim = 5
 		pool0_dim = 2
 		pool1_dim = 1
 

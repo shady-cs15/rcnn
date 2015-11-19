@@ -62,7 +62,6 @@ def shared_dataset(data_xy):
 	program starts here
 '''
 
-p_width = 10
 file_prefixes = []
 for f in os.listdir('../data/labeled_scaled'):
 	if f=='.DS_Store':
@@ -72,10 +71,14 @@ for f in os.listdir('../data/labeled_scaled'):
 #shuffle(file_prefixes)
 
 # repeat for p_width = 20, 30, 40 ...
+p_width = 4
+
 x, y = generate_data(file_prefixes[:1], p_width)
+#x, y = x[:10], y[:10] # remove
 train_x, train_y = shared_dataset((x[0:(3*len(x)/5)], y[0:(3*len(y)/5)]))
 valid_x, valid_y = shared_dataset((x[(3*len(x)/5):(4*len(x)/5)], y[3*len(y)/5:4*len(y)]))
 test_x, test_y = shared_dataset((x[(4*len(x)/5):len(x)], y[(4*len(y)/5):len(y)]))
 
 print type(test_x), type(test_y)
 trainConvNet((train_x, train_y, test_x, test_y, valid_x, valid_y), p_width, 5, [5, 10])
+# repeat block
