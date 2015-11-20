@@ -9,6 +9,7 @@ import theano.tensor as T
 import os
 
 from cnn import trainConvNet, represent
+from rnn import trainRecNet
 
 def generate_data(file_prefixes, p_width = 10):
 	def generate_patch(img, (i, j), p_width = 10): # patch area : (10*10)
@@ -57,6 +58,8 @@ def shared_dataset(data_xy):
 	shared_y = theano.shared(np.asarray(y, dtype=theano.config.floatX), borrow=True)
 	return shared_x, T.cast(shared_y, 'int32')
 
+def shared_data_x(data_x):
+	return theano.shared(np.asarray(data_x, dtype=theano.config.floatX), borrow=True)
 
 '''
 	program starts here
@@ -80,9 +83,19 @@ valid_x, valid_y = shared_dataset((x[(3*len(x)/5):(4*len(x)/5)], y[3*len(y)/5:4*
 test_x, test_y = shared_dataset((x[(4*len(x)/5):len(x)], y[(4*len(y)/5):len(y)]))
 
 print type(test_x), type(test_y)
-trainConvNet((train_x, train_y, test_x, test_y, valid_x, valid_y), p_width, 5, [5, 10])
+trainConvNet((train_x, train_y, test_x, test_y, valid_x, valid_y), p_width, 1, [5, 10])
 # repeat block
 
-'''testing'''
-rep4 = represent(train_x[:10], 10, 4)
+'''testing for RNN'''
+rep4 = represent(train_x[:], train_x[:].shape.eval()[0], 4)
 print type(rep4), rep4.shape
+train_x4 = shared_data_x(rep4[:(3*len(x)/5)])
+valid_x4 = shared_data_x(rep4[(3*len(x)/5):(4*len(x)/5)])
+test_x4 = shared_data_x(rep4[(4*len(x)/5):])
+print type(train_x4), train_x4.shape.eval()
+
+train_x = (train_x4, train_x4, train_x4)
+test_x = (test_x4, test_x4, test_x4)
+valid_x = (valid_x4, valid_x4, valid_x4)
+
+trainRecNet((train_x, train_y, test_x, test_y, valid_x, valid_y), 90, 2, n_recurrences=3)
