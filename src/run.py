@@ -8,7 +8,7 @@ import theano.tensor as T
 
 import os
 
-from cnn import trainConvNet
+from cnn import trainConvNet, represent
 
 def generate_data(file_prefixes, p_width = 10):
 	def generate_patch(img, (i, j), p_width = 10): # patch area : (10*10)
@@ -82,3 +82,7 @@ test_x, test_y = shared_dataset((x[(4*len(x)/5):len(x)], y[(4*len(y)/5):len(y)])
 print type(test_x), type(test_y)
 trainConvNet((train_x, train_y, test_x, test_y, valid_x, valid_y), p_width, 5, [5, 10])
 # repeat block
+
+'''testing'''
+rep4 = represent(train_x[:10], 10, 4)
+print type(rep4), rep4.shape

@@ -107,6 +107,56 @@ class HiddenLayer(object):
         # parameters of the model
         self.params = [self.W, self.b]
 
+class HiddenLayer2(object):
+    def __init__(self, rng, input0, input_1, n_in0, n_in_1, n_out, U=None, W=None, b=None,
+                 activation=T.tanh):
+        
+        self.input0 = input0
+        self.input_1 = input_1
+        
+        if W is None:
+            W_values = numpy.asarray(
+                rng.uniform(
+                    low=-numpy.sqrt(6. / (n_in_1 + n_out)),
+                    high=numpy.sqrt(6. / (n_in_1 + n_out)),
+                    size=(n_in_1, n_out)
+                ),
+                dtype=theano.config.floatX
+            )
+            if activation == theano.tensor.nnet.sigmoid:
+                W_values *= 4
+
+            W = theano.shared(value=W_values, name='W', borrow=True)
+
+        if U is None:
+            U_values = numpy.asarray(
+                rng.uniform(
+                    low=-numpy.sqrt(6. / (n_in0 + n_out)),
+                    high=numpy.sqrt(6. / (n_in0 + n_out)),
+                    size=(n_in0, n_out)
+                ),
+                dtype=theano.config.floatX
+            )
+            if activation == theano.tensor.nnet.sigmoid:
+                U_values *= 4
+
+            U = theano.shared(value=U_values, name='U', borrow=True)
+
+        if b is None:
+            b_values = numpy.zeros((n_out,), dtype=theano.config.floatX)
+            b = theano.shared(value=b_values, name='b', borrow=True)
+
+        self.W = W
+        self.U = U
+        self.b = b
+
+        lin_output = T.dot(input_1, self.W) + T.dot(input0, self.U) + self.b
+        self.output = (
+            lin_output if activation is None
+            else activation(lin_output)
+        )
+        # parameters of the model
+        self.params = [self.W, self.U, self.b]
 
 # start-snippet-2
 class MLP(object):

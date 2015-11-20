@@ -15,7 +15,7 @@ from mlp import HiddenLayer
 class LeNetConvPoolLayer(object):
     """Pool Layer of a convolutional network """
 
-    def __init__(self, rng, input, filter_shape, image_shape, poolsize=(2, 2)):
+    def __init__(self, rng, input, filter_shape, image_shape, poolsize=(2, 2), read_file=False, W_input=None, b_input=None):
         
         assert image_shape[1] == filter_shape[1]
         self.input = input
@@ -41,6 +41,10 @@ class LeNetConvPoolLayer(object):
         # the bias is a 1D tensor -- one bias per output feature map
         b_values = numpy.zeros((filter_shape[0],), dtype=theano.config.floatX)
         self.b = theano.shared(value=b_values, borrow=True)
+
+        if read_file==True:
+        	self.W = W_input
+        	self.b = b_input
 
         # convolve input feature maps with filters
         conv_out = conv.conv2d(
@@ -69,6 +73,84 @@ class LeNetConvPoolLayer(object):
         # keep track of model input
         self.input = input
 
+def represent(data_x, batch_size, patch_width=10, nkerns=[5, 10]):
+	#x = data_x
+	print type(data_x), data_x.shape.eval()
+
+	kern0_dim = 3
+	kern1_dim = 2
+	pool0_dim = 2
+	pool1_dim = 1
+
+	if patch_width==4:
+		kern0_dim = 2
+		kern1_dim = 1
+		pool0_dim = 1
+		pool1_dim = 1
+
+	if patch_width==10:
+		kern0_dim = 3
+		kern1_dim = 2
+		pool0_dim = 2
+		pool1_dim = 1
+
+	if patch_width==14:
+		kern0_dim = 5
+		kern1_dim = 3
+		pool0_dim = 2
+		pool1_dim = 1
+
+	if patch_width==20:
+		kern0_dim = 7
+		kern1_dim = 5
+		pool0_dim = 2
+		pool1_dim = 1
+
+	rng = numpy.random.RandomState(23455)
+	W0 = theano.shared(numpy.asarray(rng.uniform(low=-1., high=-1., size=(nkerns[0], 3, kern0_dim, kern0_dim)), dtype=theano.config.floatX), borrow=True)
+	b0 = theano.shared(numpy.asarray(rng.uniform(low=-1., high=-1., size=(nkerns[0],)), dtype=theano.config.floatX), borrow=True)
+	W1 = theano.shared(numpy.asarray(rng.uniform(low=-1., high=-1., size=(nkerns[1], nkerns[0], kern1_dim, kern1_dim)), dtype=theano.config.floatX), borrow=True)
+	b1 = theano.shared(numpy.asarray(rng.uniform(low=-1., high=-1., size=(nkerns[1],)), dtype=theano.config.floatX), borrow=True)
+	save_file = open('param'+str(patch_width)+'.pkl')
+	W0.set_value(cPickle.load(save_file), borrow=True)
+	b0.set_value(cPickle.load(save_file), borrow=True)
+	W1.set_value(cPickle.load(save_file), borrow=True)
+	b1.set_value(cPickle.load(save_file), borrow=True)
+	save_file.close()
+
+	inp_dim = patch_width
+
+	layer0_input = data_x.reshape((batch_size, 3, inp_dim, inp_dim))
+
+	layer0 = LeNetConvPoolLayer(
+		rng, 
+		input = layer0_input,
+		image_shape=(batch_size, 3, inp_dim, inp_dim),
+		filter_shape=(nkerns[0], 3, kern0_dim, kern0_dim),
+		poolsize=(pool0_dim, pool0_dim),
+		read_file=True,
+		W_input=W0,
+		b_input=b0
+	)
+
+	
+	inp1_dim = (inp_dim-kern0_dim+1)/pool0_dim
+	layer1 = LeNetConvPoolLayer(
+		rng,
+		input = layer0.output,
+		image_shape=(batch_size, nkerns[0], inp1_dim, inp1_dim),
+		filter_shape=(nkerns[1], nkerns[0], kern1_dim, kern1_dim),
+		poolsize=(pool1_dim, pool1_dim),
+		read_file=True,
+		W_input=W1,
+		b_input=b1
+	)
+
+	layer2_input = layer1.output.flatten(2)
+
+	# compile into a theano function
+	f = theano.function([data_x], layer2_input)
+	return f(data_x.eval())
 
 def trainConvNet(data_xy, inp_dim =10, n_epochs = 3, nkerns=[5, 10], batch_size=500, learning_rate=0.1):
 	train_x, train_y, test_x, test_y, valid_x, valid_y = data_xy
