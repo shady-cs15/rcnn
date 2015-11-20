@@ -23,9 +23,6 @@ def trainRecNet(data_xy, inp_dim = 90, n_epochs = 5, batch_size=500, learning_ra
 	rng = numpy.random.RandomState(23455)
 
 	for i in range(n_recurrences):
-		'''x = T.dmatrix('x')
-		y = T.ivector('y')'''
-
 		x = train_x[i][index*batch_size: (index+1)*batch_size]
 		y = train_y[index*batch_size: (index+1)*batch_size]
 
@@ -95,23 +92,19 @@ def trainRecNet(data_xy, inp_dim = 90, n_epochs = 5, batch_size=500, learning_ra
 		# train using function train_model inside the loop
 		print '...training at recurrence step: ', i
 		epoch = 0
-		done_looping = False
-		patience = 10000
-		patience_increase = 2
-		improvement_threshold = 0.995
-		validation_frequency = min(n_train_batches, patience/2)
-		best_validation_loss = numpy.inf
-		best_iter = 0
-		test_score = 0.0
 		start_time = timeit.default_timer()
 
-		while((epoch < n_epochs) and (not done_looping)):
+		while((epoch < n_epochs)):
 			epoch += 1
 			for minibatch_index in xrange(n_train_batches):
 				iter = (epoch-1) * n_train_batches + minibatch_index
 				if iter % 100 == 0:
 					print 'training @ iter =', iter
+				#print 'iter:', iter
 				cost_ij = train_model(minibatch_index)
 
-	print 'layer 1 params: ', layer1.W.shape.eval(), layer1.U.shape.eval(), layer1.b.shape.eval()
-	print 'layer 2 params: ', layer2.W.shape.eval(), layer2.b.shape.eval()
+	print 'layer 1 param dim: '
+	print 'W >>', layer1.W.shape.eval(), 'U >>', layer1.U.shape.eval(), 'b >>', layer1.b.shape.eval()
+	print 'layer 2 param dim: '
+	print 'W >>', layer2.W.shape.eval(), 'U >>', layer2.b.shape.eval()
+

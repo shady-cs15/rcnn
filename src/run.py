@@ -98,4 +98,4 @@ train_x = (train_x4, train_x4, train_x4)
 test_x = (test_x4, test_x4, test_x4)
 valid_x = (valid_x4, valid_x4, valid_x4)
 
-trainRecNet((train_x, train_y, test_x, test_y, valid_x, valid_y), 90, 2, n_recurrences=3)
+trainRecNet((train_x, train_y, test_x, test_y, valid_x, valid_y), 90, 1, n_recurrences=3)
