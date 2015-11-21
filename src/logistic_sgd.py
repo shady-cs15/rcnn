@@ -55,7 +55,7 @@ class LogisticRegression(object):
     determine a class membership probability.
     """
 
-    def __init__(self, input, n_in, n_out):
+    def __init__(self, input, n_in, n_out, W=None, b=None):
         """ Initialize the parameters of the logistic regression
 
         :type input: theano.tensor.TensorType
@@ -91,6 +91,10 @@ class LogisticRegression(object):
             borrow=True
         )
 
+        if W !=None:
+            self.W = W
+        if b !=None:
+            self.b = b
         # symbolic expression for computing the matrix of class-membership
         # probabilities
         # Where:

@@ -9,7 +9,7 @@ import theano.tensor as T
 import os
 
 from cnn import trainConvNet, represent
-from rnn import trainRecNet
+from rnn import trainRecNet, evaluate
 
 def generate_data(file_prefixes, p_width = 10):
 	def generate_patch(img, (i, j), p_width = 10): # patch area : (10*10)
@@ -71,12 +71,40 @@ for f in os.listdir('../data/labeled_scaled'):
 		continue
 	file_prefixes.append(f[:-4])
 
-#shuffle(file_prefixes)
+shuffle(file_prefixes)
 
 # repeat for p_width = 20, 30, 40 ...
 p_width = 4
 
-x, y = generate_data(file_prefixes[:1], p_width)
+x, y = generate_data(file_prefixes[:5], p_width)
+#x, y = x[:10], y[:10] # remove
+train_x, train_y = shared_dataset((x[0:(3*len(x)/5)], y[0:(3*len(y)/5)]))
+valid_x, valid_y = shared_dataset((x[(3*len(x)/5):(4*len(x)/5)], y[3*len(y)/5:4*len(y)]))
+test_x, test_y = shared_dataset((x[(4*len(x)/5):len(x)], y[(4*len(y)/5):len(y)]))
+
+#print type(test_x), type(test_y)
+trainConvNet((train_x, train_y, test_x, test_y, valid_x, valid_y), p_width, 1, [5, 10])
+rep4 = represent(train_x[:], train_x[:].shape.eval()[0], p_width)
+# repeat block
+
+# repeat for p_width = 20, 30, 40 ...
+p_width = 10
+
+x, y = generate_data(file_prefixes[:5], p_width)
+#x, y = x[:10], y[:10] # remove
+train_x, train_y = shared_dataset((x[0:(3*len(x)/5)], y[0:(3*len(y)/5)]))
+valid_x, valid_y = shared_dataset((x[(3*len(x)/5):(4*len(x)/5)], y[3*len(y)/5:4*len(y)]))
+test_x, test_y = shared_dataset((x[(4*len(x)/5):len(x)], y[(4*len(y)/5):len(y)]))
+
+#print type(test_x), type(test_y)
+trainConvNet((train_x, train_y, test_x, test_y, valid_x, valid_y), p_width, 1, [5, 10])
+rep10 = represent(train_x[:], train_x[:].shape.eval()[0], p_width)
+# repeat block
+
+# repeat for p_width = 20, 30, 40 ...
+p_width = 14
+
+x, y = generate_data(file_prefixes[:5], p_width)
 #x, y = x[:10], y[:10] # remove
 train_x, train_y = shared_dataset((x[0:(3*len(x)/5)], y[0:(3*len(y)/5)]))
 valid_x, valid_y = shared_dataset((x[(3*len(x)/5):(4*len(x)/5)], y[3*len(y)/5:4*len(y)]))
@@ -84,18 +112,25 @@ test_x, test_y = shared_dataset((x[(4*len(x)/5):len(x)], y[(4*len(y)/5):len(y)])
 
 print type(test_x), type(test_y)
 trainConvNet((train_x, train_y, test_x, test_y, valid_x, valid_y), p_width, 1, [5, 10])
+rep14 = represent(train_x[:], train_x[:].shape.eval()[0], p_width)
 # repeat block
 
 '''testing for RNN'''
-rep4 = represent(train_x[:], train_x[:].shape.eval()[0], 4)
-print type(rep4), rep4.shape
-train_x4 = shared_data_x(rep4[:(3*len(x)/5)])
-valid_x4 = shared_data_x(rep4[(3*len(x)/5):(4*len(x)/5)])
-test_x4 = shared_data_x(rep4[(4*len(x)/5):])
-print type(train_x4), train_x4.shape.eval()
+#rep4 = represent(train_x[:], train_x[:].shape.eval()[0], 4)
+#print type(rep4), rep4.shape
+train_x4 = shared_data_x(rep4[:(3*rep4.shape[0]/4)])
+test_x4 = shared_data_x(rep4[(3*rep4.shape[0]/4):])
+#print 'HOla!', type(test_x4), test_x4.shape.eval()
 
-train_x = (train_x4, train_x4, train_x4)
-test_x = (test_x4, test_x4, test_x4)
-valid_x = (valid_x4, valid_x4, valid_x4)
+train_x10 = shared_data_x(rep10[:(3*rep10.shape[0]/4)])
+test_x10 = shared_data_x(rep10[(3*rep10.shape[0]/4):])
 
-trainRecNet((train_x, train_y, test_x, test_y, valid_x, valid_y), 90, 1, n_recurrences=3)
+train_x14 = shared_data_x(rep14[:(3*rep14.shape[0]/4)])
+test_x14 = shared_data_x(rep14[(3*rep14.shape[0]/4):])
+
+train_x = (train_x4, train_x10, train_x14)
+test_x = (test_x4, test_x10, test_x14)
+
+trainRecNet((train_x, train_y), 90, 1, n_recurrences=3)
+error = evaluate((test_x, test_y), 90, n_recurrences=3)
+print 'accuracy :', 100.0-error, '%'
