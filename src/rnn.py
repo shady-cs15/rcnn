@@ -176,8 +176,15 @@ def evaluate(data_xy, inp_dim=90, batch_size=500, n_recurrences=4):
 		)
 
 	layer2 = LogisticRegression(input=layer1.output, n_in=300, n_out=10, W=W2, b=b2)
+	
 	cost = layer2.negative_log_likelihood(y)
+	
 	f = theano.function([index], cost)
+	
+	y_ = layer2.y_pred
+	
+	g = theano.function([index], y_)
+
 	#out = f(0)
 	#print type(out), out.shape, out
 	losses = [
@@ -185,4 +192,10 @@ def evaluate(data_xy, inp_dim=90, batch_size=500, n_recurrences=4):
 		for ind in xrange(n_test_batches)
 	]
 	score = numpy.mean(losses)
-	return score
+
+	preds = [
+		g(ind)
+		for ind in xrange(n_test_batches)
+	]
+
+	return score, preds

@@ -88,7 +88,7 @@ test_x, test_y = shared_dataset((x[(4*len(x)/5):len(x)], y[(4*len(y)/5):len(y)])
 net_x = shared_data_x(x)
 
 #print type(test_x), type(test_y)
-trainConvNet((train_x, train_y, test_x, test_y, valid_x, valid_y), p_width, 1, [5, 10])
+trainConvNet((train_x, train_y, test_x, test_y, valid_x, valid_y), p_width, 10, [5, 10])
 rep4 = represent(net_x[:], net_x.shape.eval()[0], p_width)
 # repeat block
 
@@ -103,7 +103,7 @@ test_x, test_y = shared_dataset((x[(4*len(x)/5):len(x)], y[(4*len(y)/5):len(y)])
 net_x = shared_data_x(x)
 
 #print type(test_x), type(test_y)
-trainConvNet((train_x, train_y, test_x, test_y, valid_x, valid_y), p_width, 1, [5, 10])
+trainConvNet((train_x, train_y, test_x, test_y, valid_x, valid_y), p_width, 10, [5, 10])
 rep10 = represent(net_x[:], net_x.shape.eval()[0], p_width)
 # repeat block
 
@@ -118,7 +118,7 @@ test_x, test_y = shared_dataset((x[(4*len(x)/5):len(x)], y[(4*len(y)/5):len(y)])
 net_x = shared_data_x(x)
 
 print type(test_x), type(test_y)
-trainConvNet((train_x, train_y, test_x, test_y, valid_x, valid_y), p_width, 1, [5, 10])
+trainConvNet((train_x, train_y, test_x, test_y, valid_x, valid_y), p_width, 10, [5, 10])
 rep14 = represent(net_x[:], net_x.shape.eval()[0], p_width)
 # repeat block
 
@@ -146,5 +146,26 @@ print '4x4: ', train_x[0].shape.eval()
 print 'label: ', train_y.shape.eval()
 
 trainRecNet((train_x, train_y), 90, 1, n_recurrences=3)
-error = evaluate((test_x, test_y), 90, n_recurrences=3)
+error, pred = evaluate((test_x, test_y), 90, n_recurrences=3)
+
+print np.array(pred).shape, test_y.shape.eval()
 print 'accuracy :', 100.0-error, '%'
+
+print pred[0][0:400]
+print test_y.eval()[0:400]
+
+right_labels = 0
+wrong_labels = 0
+
+pred_shape = np.array(pred).shape
+for i in range(pred_shape[0]):
+	for j in range(pred_shape[1]):
+		#print pred[i][j], test_y[i*pred_shape[1]+j]
+		if (pred[i][j]==test_y.eval()[i*pred_shape[1]+j]):
+			right_labels+=1
+		else:
+			wrong_labels+=1
+
+print 'right: ', right_labels
+print 'wrong: ', wrong_labels
+print 'computed accuracy: ', (right_labels*100.)/(right_labels+wrong_labels), ' %'
