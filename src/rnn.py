@@ -108,7 +108,7 @@ def trainRecNet(data_xy, inp_dim = 90, n_epochs = 5, batch_size=500, learning_ra
 	print 'layer 1 param dim: '
 	print 'W >>', layer1.W.shape.eval(), 'U >>', layer1.U.shape.eval(), 'b >>', layer1.b.shape.eval()
 	print 'layer 2 param dim: '
-	print 'W >>', layer2.W.shape.eval(), 'U >>', layer2.b.shape.eval()
+	print 'W >>', layer2.W.shape.eval(), 'b >>', layer2.b.shape.eval()
 
 	save_file = open('rnnparams.pkl', 'wb')
 	cPickle.dump(layer1.W.get_value(borrow=True), save_file, -1)
