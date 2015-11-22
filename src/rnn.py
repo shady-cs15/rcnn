@@ -198,4 +198,4 @@ def evaluate(data_xy, inp_dim=90, batch_size=500, n_recurrences=4):
 		for ind in xrange(n_test_batches)
 	]
 
-	return score, preds
+	return preds

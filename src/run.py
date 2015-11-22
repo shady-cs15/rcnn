@@ -146,7 +146,7 @@ print '4x4: ', train_x[0].shape.eval()
 print 'label: ', train_y.shape.eval()
 
 trainRecNet((train_x, train_y), 90, 1, n_recurrences=3)
-error, pred = evaluate((test_x, test_y), 90, n_recurrences=3)
+pred = evaluate((test_x, test_y), 90, n_recurrences=3)
 
 print np.array(pred).shape, test_y.shape.eval()
 
