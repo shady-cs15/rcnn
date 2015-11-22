@@ -149,10 +149,6 @@ trainRecNet((train_x, train_y), 90, 1, n_recurrences=3)
 error, pred = evaluate((test_x, test_y), 90, n_recurrences=3)
 
 print np.array(pred).shape, test_y.shape.eval()
-print 'accuracy :', 100.0-error, '%'
-
-print pred[0][0:400]
-print test_y.eval()[0:400]
 
 right_labels = 0
 wrong_labels = 0
