@@ -40,13 +40,11 @@ def generate_data(file_prefixes, p_width = 10):
 				patch_tuple += (patch_10_, )
 				y_list.append(l-1)
 				data_size += 1
-				#print data_size
 		ind += 1
 		print '\033[FData generated: ', ind*100./len(file_prefixes), ' %\t'
 
 	assert len(patch_tuple) == len(y_list) and len(y_list) == data_size
-	print 'data size: ', data_size
-
+	
 	x = np.concatenate(patch_tuple).reshape((data_size, 3, p_width, p_width))
 	y = y_list
 
@@ -80,45 +78,45 @@ print 'Starting CNN training ...'
 p_width = 4
 print '##########################################'
 print 'For patch width: ', p_width
-x, y = generate_data(file_prefixes[:4], p_width)
+x, y = generate_data(file_prefixes[:], p_width)
 train_x, train_y = shared_dataset((x[0:(3*len(x)/5)], y[0:(3*len(y)/5)]))
 valid_x, valid_y = shared_dataset((x[(3*len(x)/5):(4*len(x)/5)], y[3*len(y)/5:4*len(y)]))
 test_x, test_y = shared_dataset((x[(4*len(x)/5):len(x)], y[(4*len(y)/5):len(y)]))
 net_x = shared_data_x(x)
-trainConvNet((train_x, train_y, test_x, test_y, valid_x, valid_y), p_width, 10, [5, 10])
+trainConvNet((train_x, train_y, test_x, test_y, valid_x, valid_y), p_width, 50, [5, 10])
 rep4 = represent(net_x[:], net_x.shape.eval()[0], p_width)
 
 p_width = 10
 print '##########################################'
 print 'For patch width: ', p_width
-x, y = generate_data(file_prefixes[:4], p_width)
+x, y = generate_data(file_prefixes[:], p_width)
 train_x, train_y = shared_dataset((x[0:(3*len(x)/5)], y[0:(3*len(y)/5)]))
 valid_x, valid_y = shared_dataset((x[(3*len(x)/5):(4*len(x)/5)], y[3*len(y)/5:4*len(y)]))
 test_x, test_y = shared_dataset((x[(4*len(x)/5):len(x)], y[(4*len(y)/5):len(y)]))
 net_x = shared_data_x(x)
-trainConvNet((train_x, train_y, test_x, test_y, valid_x, valid_y), p_width, 10, [5, 10])
+trainConvNet((train_x, train_y, test_x, test_y, valid_x, valid_y), p_width, 50, [5, 10])
 rep10 = represent(net_x[:], net_x.shape.eval()[0], p_width)
 
 p_width = 14
 print '##########################################'
 print 'For patch width: ', p_width
-x, y = generate_data(file_prefixes[:4], p_width)
+x, y = generate_data(file_prefixes[:], p_width)
 train_x, train_y = shared_dataset((x[0:(3*len(x)/5)], y[0:(3*len(y)/5)]))
 valid_x, valid_y = shared_dataset((x[(3*len(x)/5):(4*len(x)/5)], y[3*len(y)/5:4*len(y)]))
 test_x, test_y = shared_dataset((x[(4*len(x)/5):len(x)], y[(4*len(y)/5):len(y)]))
 net_x = shared_data_x(x)
-trainConvNet((train_x, train_y, test_x, test_y, valid_x, valid_y), p_width, 10, [5, 10])
+trainConvNet((train_x, train_y, test_x, test_y, valid_x, valid_y), p_width, 50, [5, 10])
 rep14 = represent(net_x[:], net_x.shape.eval()[0], p_width)
 
 p_width = 20
 print '##########################################'
 print 'For patch width: ', p_width
-x, y = generate_data(file_prefixes[:4], p_width)
+x, y = generate_data(file_prefixes[:], p_width)
 train_x, train_y = shared_dataset((x[0:(3*len(x)/5)], y[0:(3*len(y)/5)]))
 valid_x, valid_y = shared_dataset((x[(3*len(x)/5):(4*len(x)/5)], y[3*len(y)/5:4*len(y)]))
 test_x, test_y = shared_dataset((x[(4*len(x)/5):len(x)], y[(4*len(y)/5):len(y)]))
 net_x = shared_data_x(x)
-trainConvNet((train_x, train_y, test_x, test_y, valid_x, valid_y), p_width, 10, [5, 10])
+trainConvNet((train_x, train_y, test_x, test_y, valid_x, valid_y), p_width, 50, [5, 10])
 rep20 = represent(net_x[:], net_x.shape.eval()[0], p_width)
 
 print '##########################################'
@@ -141,15 +139,10 @@ test_x = (test_x4, test_x10, test_x14, test_x20)
 train_y = shared_data_y(y[:(4*len(y)/5)])
 test_y = shared_data_y(y[(4*len(y)/5):])
 
-#print 'RNN training data dimensions: '
-#print '4x4: ', train_x[0].shape.eval()
-#print 'label: ', train_y.shape.eval()
-
-trainRecNet((train_x, train_y), 90, 50, n_recurrences=4)
+trainRecNet((train_x, train_y), 90, 100, n_recurrences=4)
 pred = evaluate((test_x, test_y), 90, n_recurrences=4)
 
-#print np.array(pred).shape, test_y.shape.eval()
-
+# evaluation
 right_labels = 0
 wrong_labels = 0
 

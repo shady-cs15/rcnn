@@ -10,14 +10,8 @@ from logistic_sgd import LogisticRegression
 
 def trainRecNet(data_xy, inp_dim = 90, n_epochs = 5, batch_size=500, learning_rate=0.1, n_recurrences=4):
 	train_x, train_y = data_xy
-	# important train_x = (train_x0, train_x1, train_x2, train_x3)
-	# so is test_x, valid_x
-
-	#print 'train_x:', type(train_x[0]), train_x[0].shape.eval()
 	n_train_batches = train_x[0].get_value(borrow=True).shape[0] / batch_size
-	#n_test_batches = test_x[0].get_value(borrow=True).shape[0] / batch_size
 	print '...building the RNN model'
-	#print 'n_train_batches: ', n_train_batches
 	index = T.lscalar()
 
 	rng = numpy.random.RandomState(23455)
@@ -75,8 +69,6 @@ def trainRecNet(data_xy, inp_dim = 90, n_epochs = 5, batch_size=500, learning_ra
 
 		cost = layer2.negative_log_likelihood(y)
 
-		#test_model = theano.function([index], layer
-
 		params = layer2.params + layer1.params
 
 		grads = T.grad(cost, params)
@@ -86,12 +78,8 @@ def trainRecNet(data_xy, inp_dim = 90, n_epochs = 5, batch_size=500, learning_ra
 			for param_i, grad_i in zip(params, grads)
 		] 
 
-		train_model = theano.function([index], cost, updates=updates) #, givens={
-		#		x: train_x_[index*batch_size: (index+1)*batch_size],
-		#		y: train_y[index*batch_size: (index+1)*batch_size]
-		#	})
+		train_model = theano.function([index], cost, updates=updates)
 
-		# train using function train_model inside the loop
 		print '...training at recurrence step: ', i
 		epoch = 0
 		start_time = timeit.default_timer()
@@ -103,13 +91,7 @@ def trainRecNet(data_xy, inp_dim = 90, n_epochs = 5, batch_size=500, learning_ra
 				iter = (epoch-1) * n_train_batches + minibatch_index
 				if iter % 100 == 0:
 					print '\033[Ftraining @ iter =', iter
-				#print 'iter:', iter
 				cost_ij = train_model(minibatch_index)
-
-	#print 'layer 1 param dim: '
-	#print 'W >>', layer1.W.shape.eval(), 'U >>', layer1.U.shape.eval(), 'b >>', layer1.b.shape.eval()
-	#print 'layer 2 param dim: '
-	#print 'W >>', layer2.W.shape.eval(), 'b >>', layer2.b.shape.eval()
 
 	save_file = open('rnnparams.pkl', 'wb')
 	cPickle.dump(layer1.W.get_value(borrow=True), save_file, -1)
@@ -122,7 +104,6 @@ def trainRecNet(data_xy, inp_dim = 90, n_epochs = 5, batch_size=500, learning_ra
 def evaluate(data_xy, inp_dim=90, batch_size=500, n_recurrences=4):
 	test_x, test_y = data_xy
 	n_test_batches = test_x[0].get_value(borrow=True).shape[0] / batch_size
-	#print 'test_x: ', test_x[0].shape.eval()
 
 	rng = numpy.random.RandomState(23455)
 	
@@ -186,8 +167,6 @@ def evaluate(data_xy, inp_dim=90, batch_size=500, n_recurrences=4):
 	
 	g = theano.function([index], y_)
 
-	#out = f(0)
-	#print type(out), out.shape, out
 	losses = [
 		f(ind)
 		for ind in xrange(n_test_batches)

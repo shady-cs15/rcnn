@@ -20,15 +20,9 @@ class LeNetConvPoolLayer(object):
         assert image_shape[1] == filter_shape[1]
         self.input = input
 
-        # there are "num input feature maps * filter height * filter width"
-        # inputs to each hidden unit
         fan_in = numpy.prod(filter_shape[1:])
-        # each unit in the lower layer receives a gradient from:
-        # "num output feature maps * filter height * filter width" /
-        #   pooling size
         fan_out = (filter_shape[0] * numpy.prod(filter_shape[2:]) /
                    numpy.prod(poolsize))
-        # initialize weights with random weights
         W_bound = numpy.sqrt(6. / (fan_in + fan_out))
         self.W = theano.shared(
             numpy.asarray(
@@ -38,7 +32,6 @@ class LeNetConvPoolLayer(object):
             borrow=True
         )
 
-        # the bias is a 1D tensor -- one bias per output feature map
         b_values = numpy.zeros((filter_shape[0],), dtype=theano.config.floatX)
         self.b = theano.shared(value=b_values, borrow=True)
 
@@ -46,7 +39,6 @@ class LeNetConvPoolLayer(object):
         	self.W = W_input
         	self.b = b_input
 
-        # convolve input feature maps with filters
         conv_out = conv.conv2d(
             input=input,
             filters=self.W,
@@ -54,28 +46,19 @@ class LeNetConvPoolLayer(object):
             image_shape=image_shape
         )
 
-        # downsample each feature map individually, using maxpooling
         pooled_out = downsample.max_pool_2d(
             input=conv_out,
             ds=poolsize,
             ignore_border=True
         )
 
-        # add the bias term. Since the bias is a vector (1D array), we first
-        # reshape it to a tensor of shape (1, n_filters, 1, 1). Each bias will
-        # thus be broadcasted across mini-batches and feature map
-        # width & height
         self.output = T.tanh(pooled_out + self.b.dimshuffle('x', 0, 'x', 'x'))
 
-        # store parameters of this layer
         self.params = [self.W, self.b]
 
-        # keep track of model input
         self.input = input
 
 def represent(data_x, batch_size, patch_width=10, nkerns=[5, 10]):
-	#x = data_x
-	#print type(data_x), data_x.shape.eval()
 
 	kern0_dim = 3
 	kern1_dim = 2
@@ -154,7 +137,6 @@ def represent(data_x, batch_size, patch_width=10, nkerns=[5, 10]):
 
 def trainConvNet(data_xy, inp_dim =10, n_epochs = 3, nkerns=[5, 10], batch_size=500, learning_rate=0.1):
 	train_x, train_y, test_x, test_y, valid_x, valid_y = data_xy
-	#print train_x.shape.eval(), train_y.shape.eval()
 
 	n_train_batches = train_x.get_value(borrow=True).shape[0] / batch_size
 	n_valid_batches = valid_x.get_value(borrow=True).shape[0] / batch_size
@@ -258,8 +240,8 @@ def trainConvNet(data_xy, inp_dim =10, n_epochs = 3, nkerns=[5, 10], batch_size=
 	print 'training... '
 
 	patience = 10000
-	patience_increase = 2  # wait this much longer when a new best is
-	improvement_threshold = 0.995  # a relative improvement of this much is
+	patience_increase = 2
+	improvement_threshold = 0.995
 	validation_frequency = min(n_train_batches, patience / 2)
 	best_validation_loss = numpy.inf
 	best_iter = 0
@@ -282,19 +264,15 @@ def trainConvNet(data_xy, inp_dim =10, n_epochs = 3, nkerns=[5, 10], batch_size=
 				this_validation_loss = numpy.mean(validation_losses)
 				print('epoch %i, minibatch %i/%i, validation error %f %%\n' %(epoch, minibatch_index + 1, n_train_batches, this_validation_loss * 100.))
 
-                # if we got the best validation score until now
                 if this_validation_loss < best_validation_loss:
 
-                    #improve patience if loss improvement is good enough
                     if this_validation_loss < best_validation_loss *  \
                        improvement_threshold:
                         patience = max(patience, iter * patience_increase)
 
-                    # save best validation score and iteration number
                     best_validation_loss = this_validation_loss
                     best_iter = iter
 
-                    # test it on the test set
                     test_losses = [
                         test_model(i)
                         for i in xrange(n_test_batches)
@@ -316,7 +294,6 @@ def trainConvNet(data_xy, inp_dim =10, n_epochs = 3, nkerns=[5, 10], batch_size=
 
 	print ('saving params for patch width: %i...' %(inp_dim))
 	save_file = open('param'+str(inp_dim)+'.pkl', 'wb')
-	#print layer0.params[0].eval()
 	W0 = layer0.params[0]; b0 = layer0.params[1]
 	W1 = layer1.params[0]; b1 = layer1.params[1]
 	cPickle.dump(W0.get_value(borrow=True), save_file, -1)
