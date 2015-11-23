@@ -75,7 +75,7 @@ class LeNetConvPoolLayer(object):
 
 def represent(data_x, batch_size, patch_width=10, nkerns=[5, 10]):
 	#x = data_x
-	print type(data_x), data_x.shape.eval()
+	#print type(data_x), data_x.shape.eval()
 
 	kern0_dim = 3
 	kern1_dim = 2
@@ -154,7 +154,7 @@ def represent(data_x, batch_size, patch_width=10, nkerns=[5, 10]):
 
 def trainConvNet(data_xy, inp_dim =10, n_epochs = 3, nkerns=[5, 10], batch_size=500, learning_rate=0.1):
 	train_x, train_y, test_x, test_y, valid_x, valid_y = data_xy
-	print train_x.shape.eval(), train_y.shape.eval()
+	#print train_x.shape.eval(), train_y.shape.eval()
 
 	n_train_batches = train_x.get_value(borrow=True).shape[0] / batch_size
 	n_valid_batches = valid_x.get_value(borrow=True).shape[0] / batch_size

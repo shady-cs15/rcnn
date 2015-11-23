@@ -13,11 +13,11 @@ def trainRecNet(data_xy, inp_dim = 90, n_epochs = 5, batch_size=500, learning_ra
 	# important train_x = (train_x0, train_x1, train_x2, train_x3)
 	# so is test_x, valid_x
 
-	print 'train_x:', type(train_x[0]), train_x[0].shape.eval()
+	#print 'train_x:', type(train_x[0]), train_x[0].shape.eval()
 	n_train_batches = train_x[0].get_value(borrow=True).shape[0] / batch_size
 	#n_test_batches = test_x[0].get_value(borrow=True).shape[0] / batch_size
-	print '...building the model'
-	print 'n_train_batches: ', n_train_batches
+	print '...building the RNN model'
+	#print 'n_train_batches: ', n_train_batches
 	index = T.lscalar()
 
 	rng = numpy.random.RandomState(23455)
@@ -96,19 +96,20 @@ def trainRecNet(data_xy, inp_dim = 90, n_epochs = 5, batch_size=500, learning_ra
 		epoch = 0
 		start_time = timeit.default_timer()
 
+		print '\n'
 		while((epoch < n_epochs)):
 			epoch += 1
 			for minibatch_index in xrange(n_train_batches):
 				iter = (epoch-1) * n_train_batches + minibatch_index
 				if iter % 100 == 0:
-					print 'training @ iter =', iter
+					print '\033[Ftraining @ iter =', iter
 				#print 'iter:', iter
 				cost_ij = train_model(minibatch_index)
 
-	print 'layer 1 param dim: '
-	print 'W >>', layer1.W.shape.eval(), 'U >>', layer1.U.shape.eval(), 'b >>', layer1.b.shape.eval()
-	print 'layer 2 param dim: '
-	print 'W >>', layer2.W.shape.eval(), 'b >>', layer2.b.shape.eval()
+	#print 'layer 1 param dim: '
+	#print 'W >>', layer1.W.shape.eval(), 'U >>', layer1.U.shape.eval(), 'b >>', layer1.b.shape.eval()
+	#print 'layer 2 param dim: '
+	#print 'W >>', layer2.W.shape.eval(), 'b >>', layer2.b.shape.eval()
 
 	save_file = open('rnnparams.pkl', 'wb')
 	cPickle.dump(layer1.W.get_value(borrow=True), save_file, -1)
@@ -121,7 +122,7 @@ def trainRecNet(data_xy, inp_dim = 90, n_epochs = 5, batch_size=500, learning_ra
 def evaluate(data_xy, inp_dim=90, batch_size=500, n_recurrences=4):
 	test_x, test_y = data_xy
 	n_test_batches = test_x[0].get_value(borrow=True).shape[0] / batch_size
-	print 'test_x: ', test_x[0].shape.eval()
+	#print 'test_x: ', test_x[0].shape.eval()
 
 	rng = numpy.random.RandomState(23455)
 	
