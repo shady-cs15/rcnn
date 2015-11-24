@@ -17,6 +17,10 @@ navigate to 'src' directory <br>
 ```
 python run.py
 ```
+<br>Running on smaller data <br>
+```
+python test.py
+``` 
 
 # Running with GPU
 Make sure proper driver and Nvidia CUDA toolkit is installed.
