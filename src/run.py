@@ -121,40 +121,38 @@ rep20 = represent(net_x[:], net_x.shape.eval()[0], p_width)
 
 print '##########################################'
 print 'Starting RNN training ...'
-train_x4 = shared_data_x(rep4[:(4*rep4.shape[0]/5)])
-test_x4 = shared_data_x(rep4[(4*rep4.shape[0]/5):])
+for fold in range(5):
+	print 'FOLD ', fold, ':- '
+	train_x4 = shared_data_x(np.concatenate((rep4[:fold*rep4.shape[0]/5], rep4[(fold+1)*rep4.shape[0]/5:])))
+	test_x4 = shared_data_x(rep4[(fold*rep4.shape[0]/5):((fold+1)*rep4.shape[0]/5)])
 
-train_x10 = shared_data_x(rep10[:(4*rep10.shape[0]/5)])
-test_x10 = shared_data_x(rep10[(4*rep10.shape[0]/5):])
+	train_x10 = shared_data_x(np.concatenate((rep10[:fold*rep10.shape[0]/5], rep10[(fold+1)*rep10.shape[0]/5:])))
+	test_x10 = shared_data_x(rep10[(fold*rep10.shape[0]/5):((fold+1)*rep10.shape[0]/5)])
 
-train_x14 = shared_data_x(rep14[:(4*rep14.shape[0]/5)])
-test_x14 = shared_data_x(rep14[(4*rep14.shape[0]/5):])
+	train_x14 = shared_data_x(np.concatenate((rep14[:fold*rep14.shape[0]/5], rep14[(fold+1)*rep14.shape[0]/5:])))
+	test_x14 = shared_data_x(rep14[(fold*rep14.shape[0]/5):((fold+1)*rep14.shape[0]/5)])
 
-train_x20 = shared_data_x(rep20[:(4*rep20.shape[0]/5)])
-test_x20 = shared_data_x(rep20[(4*rep20.shape[0]/5):])
+	train_x = (train_x4, train_x10, train_x14)
+	test_x = (test_x4, test_x10, test_x14)
 
-train_x = (train_x4, train_x10, train_x14, train_x20)
-test_x = (test_x4, test_x10, test_x14, test_x20)
+	train_y = shared_data_y(y[:(4*len(y)/5)])
+	test_y = shared_data_y(y[(4*len(y)/5):])
 
-train_y = shared_data_y(y[:(4*len(y)/5)])
-test_y = shared_data_y(y[(4*len(y)/5):])
+	trainRecNet((train_x, train_y), 90, 50, n_recurrences=3)
+	pred = evaluate((test_x, test_y), 90, n_recurrences=3)
 
-trainRecNet((train_x, train_y), 90, 100, n_recurrences=4)
-pred = evaluate((test_x, test_y), 90, n_recurrences=4)
+	# evaluation
+	right_labels = 0
+	wrong_labels = 0
 
-# evaluation
-right_labels = 0
-wrong_labels = 0
+	pred_shape = np.array(pred).shape
+	for i in range(pred_shape[0]):
+		for j in range(pred_shape[1]):
+			if (pred[i][j]==test_y.eval()[i*pred_shape[1]+j]):
+				right_labels+=1
+			else:
+				wrong_labels+=1
 
-pred_shape = np.array(pred).shape
-for i in range(pred_shape[0]):
-	for j in range(pred_shape[1]):
-		if (pred[i][j]==test_y.eval()[i*pred_shape[1]+j]):
-			right_labels+=1
-		else:
-			wrong_labels+=1
-
-print 'right: ', right_labels
-print 'wrong: ', wrong_labels
-print 'computed accuracy: ', (right_labels*100.)/(right_labels+wrong_labels), ' %'
-
+	print 'right: ', right_labels
+	print 'wrong: ', wrong_labels
+	print 'computed accuracy: ', (right_labels*100.)/(right_labels+wrong_labels), ' %'
