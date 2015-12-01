@@ -68,8 +68,9 @@ for f in os.listdir('../data/labeled_scaled'):
 		continue
 	file_prefixes.append(f[:-4])
 
-#shuffle(file_prefixes)
-file_prefixes = file_prefixes[:4]
+# enter the required file names here (to be modified as per requirement)
+shuffle(file_prefixes)
+file_prefixes = file_prefixes[:20]
 
 print 'Starting CNN training ...'
 p_width = 4
